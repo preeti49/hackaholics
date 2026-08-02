@@ -170,7 +170,10 @@ app.register_blueprint(notification_bp, url_prefix="/api")
 
 @app.route("/", methods=["GET"])
 def index():
-    return redirect(url_for("preview"))
+    return  {
+        "status": "Backend Running",
+        "message": "MamaCare API is live 🚀"
+    }
 
 @app.route("/preview", methods=["GET"])
 def preview():
