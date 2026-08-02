@@ -1,0 +1,13 @@
+
+Sample Medical Report
+Hospital: Mama Care Hospital
+Report ID: MR-2026-0001
+Date: 2026-08-01
+Patient Name: Rahul Sharma
+Date of Birth: 1990-05-18
+Phone: +91 9876543210
+Email: rahul.sharma@example.com
+Address: 123 Health Ave, Mumbai
+Insurance Number: INS-45892173
+Policy Document: POL-882194
+Emergency Contact: +91 9123456789

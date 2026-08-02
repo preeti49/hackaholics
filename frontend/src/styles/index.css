@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #f8f9fb; }
+.input { width: 100%; border: 1px solid #dbe2ea; border-radius: .75rem; padding: .7rem .85rem; font-size: .9rem; outline: none; }
+.input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px #dbeafe; }

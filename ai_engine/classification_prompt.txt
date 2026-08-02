@@ -1,0 +1,1 @@
+Classify document into one of: Prior Authorization Request, Patient Intake Form, Insurance Claim Form, Referral Request, Medical Notes. Return structured JSON.

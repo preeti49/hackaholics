@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mama Care AI - Unified Healthcare Platform</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <!-- Babel Compiler for Browser JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const API_BASE = "http://localhost:5000/api";
+
+    // 6-Language Dynamic Dictionary
+    const dict = {
+      English: {
+        title: "MAMA CARE AI",
+        tagline: "AI Health Platform",
+        login_title: "Mama Care AI Portal Login",
+        login_subtitle: "Access Patient, Doctor, or Receptionist Portals with Secure Credentials:",
+        patient_portal: "Patient Portal",
+        doctor_desk: "Doctor Desk",
+        receptionist_desk: "Receptionist Desk",
+        patient_desc: "Upload lab reports, view AI summaries, book appointment tokens & track insurance.",
+        doctor_desc: "Live appointment tokens queue, patient search, diagnostic history & digital prescriptions.",
+        receptionist_desc: "Upload patient PDFs, send missing info email alerts & generate walk-in tokens.",
+        login_as_patient: "Sign In as Patient →",
+        login_as_doctor: "Sign In as Doctor →",
+        login_as_receptionist: "Sign In as Receptionist →",
+        register_user: "Create New Account",
+        welcome: "Welcome",
+        logout: "Logout",
+        logged_in_as: "Logged in as",
+        patient_subtitle: "Upload medical reports, view past history, book tokens, and check email notifications",
+        upload_title: "Report Upload & AI Extraction",
+        drop_file: "Drop Blood Test, MRI, X-Ray, Prescription, or Insurance Document here",
+        file_supports: "Supports PDF, PNG, JPG, TXT files up to 16MB",
+        btn_upload: "Upload & Run AI Extraction",
+        btn_uploading: "Backend OCR & AI Extraction Running...",
+        extraction_result: "AI Extraction & Document Classification Result",
+        completeness: "Completeness",
+        ai_summary: "AI Medical Summary & Recommendations",
+        extracted_fields: "Extracted Fields",
+        missing_info: "Missing Info Detected",
+        insurance_status: "Insurance Status",
+        active: "ACTIVE",
+        medical_history: "Your Medical History & Past Reports",
+        opd_queue: "Today's Live OPD Consultation Queue & Patient History Search",
+        token_queue: "Live Patient Tokens Queue",
+        write_prescription: "Write Digital Prescription",
+        diagnosis: "Clinical Diagnosis",
+        medicines: "Medicines, Dosage & Special Instructions",
+        btn_save_prescription: "Save & Issue Digital Prescription",
+        prescription_saved: "Digital Prescription saved & sent to patient's portal!",
+        patient_search: "Search Patient Records by Name / Phone",
+        search_placeholder: "Type patient name or phone...",
+        live_metrics: "Live Analytics Dashboard",
+        total_docs: "Total Reports",
+        pending_review: "Pending Review",
+        insurance_applied: "Insurance Claims",
+        missing_info_count: "Missing Fields",
+        avg_completeness: "Avg Completeness",
+        doc_registry: "Uploaded Documents Registry",
+        book_token: "Book Appointment / Generate Token",
+        doctor_select: "Select Doctor",
+        app_date: "Appointment Date",
+        app_time: "Preferred Time",
+        symptoms: "Symptoms / Reason for Visit",
+        btn_generate_token: "Generate Appointment Token 🎟️",
+        token_success: "Appointment Token Generated!",
+        email_notifications: "📩 Notifications & Alerts Inbox",
+        insurance_workflow: "Receptionist Insurance & Missing Documents Manager"
+      },
+      Hindi: {
+        title: "मामा केयर एआई",
+        tagline: "एआई स्वास्थ्य प्लेटफॉर्म",
+        login_title: "मामा केयर एआई पोर्टल लॉगिन",
+        login_subtitle: "सुरक्षित क्रेडेंशियल्स के साथ मरीज़, डॉक्टर या रिसेप्शनिस्ट पोर्टल तक पहुंचें:",
+        patient_portal: "मरीज़ पोर्टल",
+        doctor_desk: "डॉक्टर डेस्क",
+        receptionist_desk: "रिसेप्शनिस्ट डेस्क",
+        patient_desc: "लैब रिपोर्ट अपलोड करें, एआई सारांश देखें, अपॉइंटमेंट टोकन बुक करें और बीमा ट्रैक करें।",
+        doctor_desc: "लाइव अपॉइंटमेंट टोकन कतार, मरीज़ खोज, नैदानिक इतिहास और डिजिटल पर्चे।",
+        receptionist_desc: "मरीज़ पीडीएफ अपलोड करें, अधूरी जानकारी ईमेल अलर्ट भेजें और टोकन जनरेट करें।",
+        login_as_patient: "मरीज़ के रूप में साइन इन करें →",
+        login_as_doctor: "डॉक्टर के रूप में साइन इन करें →",
+        login_as_receptionist: "रिसेप्शनिस्ट के रूप में साइन इन करें →",
+        register_user: "नया अकाउंट बनाएं",
+        welcome: "नमस्ते",
+        logout: "लॉगआउट",
+        logged_in_as: "लॉगिन उपयोगकर्ता",
+        patient_subtitle: "मेडिकल रिपोर्ट अपलोड करें, पिछला डेटा देखें, टोकन बुक करें और ईमेल नोटिफिकेशन जांचें",
+        upload_title: "रिपोर्ट अपलोड और एआई निष्कर्षण",
+        drop_file: "ब्लड टेस्ट, एमआरआई, एक्स-रे, प्रिस्क्रिप्शन या बीमा दस्तावेज़ यहाँ डालें",
+        file_supports: "पीडीएफ, पीएनजी, जेपीजी, टीएक्सटी फाइलों का समर्थन (16MB तक)",
+        btn_upload: "अपलोड करें और एआई एक्सट्रैक्शन चलाएं",
+        btn_uploading: "बैकएंड ओसीआर और एआई एक्सट्रैक्शन चल रहा है...",
+        extraction_result: "एआई निष्कर्षण और दस्तावेज़ वर्गीकरण परिणाम",
+        completeness: "पूर्णता स्कोर",
+        ai_summary: "एआई मेडिकल सारांश और सुझाव",
+        extracted_fields: "निकाले गए विवरण",
+        missing_info: "अधूरी जानकारी का पता चला",
+        insurance_status: "बीमा स्थिति",
+        active: "सक्रिय",
+        medical_history: "आपका पिछला मेडिकल इतिहास और रिपोर्ट",
+        opd_queue: "आज की लाइव ओपीडी परामर्श कतार और मरीज़ इतिहास खोज",
+        token_queue: "लाइव मरीज़ टोकन कतार",
+        write_prescription: "डिजिटल पर्चा लिखें",
+        diagnosis: "चिकित्सकीय निदान",
+        medicines: "दवाएं, खुराक और निर्देश",
+        btn_save_prescription: "डिजिटल पर्चा सहेजें और जारी करें",
+        prescription_saved: "डिजिटल पर्चा सहेजा गया और मरीज़ के पोर्टल पर भेजा गया!",
+        patient_search: "नाम / फोन द्वारा मरीज़ रिकॉर्ड खोजें",
+        search_placeholder: "मरीज़ का नाम या फोन नंबर लिखें...",
+        live_metrics: "लाइव एनालिटिक्स डैशबोर्ड",
+        total_docs: "कुल रिपोर्ट",
+        pending_review: "समीक्षा लंबित",
+        insurance_applied: "बीमा दावे",
+        missing_info_count: "अधूरी फ़ील्ड",
+        avg_completeness: "औसत पूर्णता",
+        doc_registry: "अपलोड किए गए दस्तावेज़ों की सूची",
+        book_token: "अपॉइंटमेंट बुक करें / टोकन जनरेट करें",
+        doctor_select: "डॉक्टर चुनें",
+        app_date: "अपॉइंटमेंट तिथि",
+        app_time: "पसंदीदा समय",
+        symptoms: "लक्षण / यात्रा का कारण",
+        btn_generate_token: "अपॉइंटमेंट टोकन जनरेट करें 🎟️",
+        token_success: "अपॉइंटमेंट टोकन सफलतापूर्वक जनरेट हुआ!",
+        email_notifications: "📩 नोटिफिकेशन और अलर्ट इनबॉक्स",
+        insurance_workflow: "रिसेप्शनिस्ट बीमा और अधूरे दस्तावेज़ प्रबंधक"
+      }
+    };
+
+    function App() {
+      const [currentRole, setCurrentRole] = useState("login");
+      const [loggedUser, setLoggedUser] = useState("");
+      const [userEmail, setUserEmail] = useState("");
+      const [authTab, setAuthTab] = useState("signin");
+
+      // Role Auth States
+      const [patientEmail, setPatientEmail] = useState("patient@mamacare.org");
+      const [patientPass, setPatientPass] = useState("password123");
+
+      const [docEmail, setDocEmail] = useState("doctor@mamacare.org");
+      const [docPass, setDocPass] = useState("password123");
+
+      const [recEmail, setRecEmail] = useState("reception@mamacare.org");
+      const [recPass, setRecPass] = useState("password123");
+
+      // Isolated Sign Up States
+      const [patientRegName, setPatientRegName] = useState("");
+      const [patientRegEmail, setPatientRegEmail] = useState("");
+      const [patientRegPass, setPatientRegPass] = useState("");
+
+      const [docRegName, setDocRegName] = useState("");
+      const [docRegEmail, setDocRegEmail] = useState("");
+      const [docRegPass, setDocRegPass] = useState("");
+
+      const [recRegName, setRecRegName] = useState("");
+      const [recRegEmail, setRecRegEmail] = useState("");
+      const [recRegPass, setRecRegPass] = useState("");
+
+      const [authError, setAuthError] = useState("");
+      const [authSuccess, setAuthSuccess] = useState("");
+
+      // Supported Languages: English, Hindi, Bengali, Tamil, Marathi, Gujarati
+      const [selectedLanguage, setSelectedLanguage] = useState("English");
+
+      const t = (key) => (dict[selectedLanguage] || dict.English)[key] || (dict.English[key] || key);
+
+      // Patient Portal States
+      const [selectedFile, setSelectedFile] = useState(null);
+      const [uploading, setUploading] = useState(false);
+      const [uploadError, setUploadError] = useState("");
+      const [extractionResult, setExtractionResult] = useState(null);
+      const [patientHistory, setPatientHistory] = useState([]);
+      const [notifications, setNotifications] = useState([]);
+
+      // Appointment Token States & Errors
+      const [tokenDoctor, setTokenDoctor] = useState("Dr. Arvind Sharma (MBBS)");
+      const [tokenDate, setTokenDate] = useState("2026-08-02");
+      const [tokenTime, setTokenTime] = useState("10:30 AM");
+      const [tokenReason, setTokenReason] = useState("Routine Health Checkup & Blood Test Review");
+      const [generatedToken, setGeneratedToken] = useState(null);
+      const [tokenError, setTokenError] = useState("");
+      const [appointmentsList, setAppointmentsList] = useState([]);
+
+      // Doctor Patient Search State
+      const [searchQuery, setSearchQuery] = useState("");
+      const [searchResults, setSearchResults] = useState([]);
+
+      // Receptionist Portal States
+      const [recFile, setRecFile] = useState(null);
+      const [recPatientName, setRecPatientName] = useState("Rahul Sharma");
+      const [recUploading, setRecUploading] = useState(false);
+      const [recUploadSuccess, setRecUploadSuccess] = useState("");
+      const [notifTargetPatient, setNotifTargetPatient] = useState("Rahul Sharma");
+      const [notifMissingFields, setNotifMissingFields] = useState("insurance_number, emergency_contact, blood_group");
+      const [notifSentSuccess, setNotifSentSuccess] = useState("");
+
+      // Analytics States
+      const [analytics, setAnalytics] = useState({ total: 0, pending: 0, missing: 0, avg_completeness: 0 });
+      const [documents, setDocuments] = useState([]);
+      const [followupPatient, setFollowupPatient] = useState("Rahul Sharma");
+
+      // Prescription States
+      const [prescriptionText, setPrescriptionText] = useState("1. Cholecalciferol (Vitamin D3) 60k IU - Once weekly for 8 weeks\n2. Cetirizine 10mg - Once daily at bedtime");
+      const [diagnosisText, setDiagnosisText] = useState("Mild Vitamin D Deficiency, Seasonal Allergies");
+      const [prescriptionSuccess, setPrescriptionSuccess] = useState(false);
+
+      useEffect(() => {
+        fetchAppointments();
+        if (currentRole === "receptionist") {
+          fetchAnalytics();
+          fetchDocs();
+        }
+      }, [currentRole]);
+
+      useEffect(() => {
+        if (currentRole === "patient" && loggedUser) {
+          fetchPatientHistory(loggedUser);
+          fetchNotifications(loggedUser);
+        }
+      }, [currentRole, loggedUser]);
+
+      const fetchAnalytics = () => {
+        fetch(`${API_BASE}/analytics`)
+          .then(res => res.json())
+          .then(data => setAnalytics(data))
+          .catch(err => console.log("Analytics offline:", err));
+      };
+
+      const fetchDocs = () => {
+        fetch(`${API_BASE}/documents`)
+          .then(res => res.json())
+          .then(data => setDocuments(data))
+          .catch(err => console.log("Docs offline:", err));
+      };
+
+      const fetchAppointments = () => {
+        fetch(`${API_BASE}/appointments`)
+          .then(res => res.json())
+          .then(data => setAppointmentsList(data))
+          .catch(err => console.log("Appointments offline:", err));
+      };
+
+      const fetchPatientHistory = (name) => {
+        fetch(`${API_BASE}/auth/patient-history/${encodeURIComponent(name)}`)
+          .then(res => res.json())
+          .then(data => setPatientHistory(data))
+          .catch(err => console.log("History offline:", err));
+      };
+
+      const fetchNotifications = (name) => {
+        fetch(`${API_BASE}/notifications/${encodeURIComponent(name)}`)
+          .then(res => res.json())
+          .then(data => setNotifications(data))
+          .catch(err => console.log("Notifications offline:", err));
+      };
+
+      const handlePatientSearch = async (query) => {
+        setSearchQuery(query);
+        try {
+          const res = await fetch(`${API_BASE}/patients/search?q=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          setSearchResults(data);
+        } catch (err) {
+          console.error("Search error:", err);
+        }
+      };
+
+      const handleRegister = async (role) => {
+        setAuthError("");
+        setAuthSuccess("");
+
+        let nameVal = role === "patient" ? patientRegName : role === "doctor" ? docRegName : recRegName;
+        let emailVal = role === "patient" ? patientRegEmail : role === "doctor" ? docRegEmail : recRegEmail;
+        let passVal = role === "patient" ? patientRegPass : role === "doctor" ? docRegPass : recRegPass;
+
+        if (!nameVal || !emailVal || !passVal) {
+          setAuthError("Please enter Name, Email, and Password!");
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: nameVal, email: emailVal, password: passVal, role: role })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Registration failed");
+
+          setAuthSuccess("Account registered successfully in SQLite Database! Please Sign In now.");
+          setAuthTab("signin");
+          if (role === "patient") { setPatientEmail(emailVal); setPatientPass(passVal); }
+          else if (role === "doctor") { setDocEmail(emailVal); setDocPass(passVal); }
+          else { setRecEmail(emailVal); setRecPass(passVal); }
+        } catch (err) {
+          setAuthError(err.message);
+        }
+      };
+
+      const handleLogin = async (role, emailVal, passVal) => {
+        setAuthError("");
+        setAuthSuccess("");
+        if (!emailVal || !passVal) {
+          setAuthError("Please enter Email and Password!");
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: emailVal, password: passVal, role: role })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Invalid Credentials");
+
+          setLoggedUser(data.user.name);
+          setUserEmail(data.user.email);
+          setCurrentRole(role);
+        } catch (err) {
+          setAuthError(err.message || "Invalid Credentials! Account not registered. Please Sign Up first.");
+        }
+      };
+
+      // STRICT TOKEN GENERATION (Prevents Duplicate Active Tokens for same patient & doctor)
+      const handleCreateToken = async (pName) => {
+        setTokenError("");
+        setGeneratedToken(null);
+        try {
+          const res = await fetch(`${API_BASE}/appointments/create`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              patient_name: pName || loggedUser || "Rahul Sharma",
+              doctor_name: tokenDoctor,
+              appointment_date: tokenDate,
+              appointment_time: tokenTime,
+              reason: tokenReason
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            setTokenError(data.error || "Token generation failed.");
+            return;
+          }
+
+          setGeneratedToken(data.appointment);
+          fetchAppointments();
+        } catch (err) {
+          setTokenError("Failed to communicate with server.");
+        }
+      };
+
+      // Receptionist Direct PDF Upload
+      const handleReceptionistUpload = async (e) => {
+        e.preventDefault();
+        if (!recFile) return;
+        setRecUploading(true);
+        setRecUploadSuccess("");
+
+        try {
+          const formData = new FormData();
+          formData.append("file", recFile);
+          formData.append("patient_name", recPatientName);
+
+          const uploadRes = await fetch(`${API_BASE}/upload`, { method: "POST", body: formData });
+          const uploadData = await uploadRes.json();
+
+          await fetch(`${API_BASE}/extract`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              document_id: uploadData.document_id,
+              filename: uploadData.filename,
+              file_type: uploadData.file_type,
+              patient_name: recPatientName,
+              language: selectedLanguage
+            })
+          });
+
+          setRecUploadSuccess(`PDF '${recFile.name}' uploaded and processed for patient ${recPatientName}!`);
+          setRecFile(null);
+          fetchDocs();
+          fetchAnalytics();
+        } catch (err) {
+          console.error("Receptionist upload error:", err);
+        } finally {
+          setRecUploading(false);
+        }
+      };
+
+      // Receptionist Send Missing Information Email Notification to Patient
+      const handleSendMissingNotif = async () => {
+        setNotifSentSuccess("");
+        try {
+          const res = await fetch(`${API_BASE}/notifications/send`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              patient_name: notifTargetPatient,
+              title: "Action Required: Missing Information in Submitted File",
+              message: `Dear ${notifTargetPatient}, the Receptionist Desk requires missing details from you: ${notifMissingFields}. Please submit these details at the desk or upload them to your portal.`,
+              missing_fields: notifMissingFields
+            })
+          });
+          if (res.ok) {
+            setNotifSentSuccess(`Email Notification Alert successfully sent to patient '${notifTargetPatient}' inbox!`);
+            setTimeout(() => setNotifSentSuccess(""), 5000);
+          }
+        } catch (err) {
+          console.error("Send notification error:", err);
+        }
+      };
+
+      const handleRealUpload = async (e) => {
+        e.preventDefault();
+        if (!selectedFile) {
+          setUploadError("Please select a file first!");
+          return;
+        }
+        setUploadError("");
+        setUploading(true);
+        setExtractionResult(null);
+
+        try {
+          const formData = new FormData();
+          formData.append("file", selectedFile);
+          formData.append("patient_name", loggedUser || "Rahul Sharma");
+
+          const uploadRes = await fetch(`${API_BASE}/upload`, { method: "POST", body: formData });
+          if (!uploadRes.ok) throw new Error("Upload failed");
+          const uploadData = await uploadRes.json();
+
+          const extractRes = await fetch(`${API_BASE}/extract`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              document_id: uploadData.document_id,
+              filename: uploadData.filename,
+              file_type: uploadData.file_type,
+              patient_name: loggedUser || "Rahul Sharma",
+              language: selectedLanguage
+            })
+          });
+          if (!extractRes.ok) throw new Error("Extraction failed");
+          const extractData = await extractRes.json();
+          setExtractionResult(extractData);
+
+          fetchPatientHistory(loggedUser || "Rahul Sharma");
+          fetchNotifications(loggedUser || "Rahul Sharma");
+
+        } catch (err) {
+          setUploadError(err.message || "Upload process failed");
+        } finally {
+          setUploading(false);
+        }
+      };
+
+      const handleUpdateAppointmentStatus = async (appId, newStatus) => {
+        try {
+          await fetch(`${API_BASE}/appointments/${appId}/status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus })
+          });
+          fetchAppointments();
+        } catch (err) {
+          console.error("Status update error:", err);
+        }
+      };
+
+      const handleLogout = () => {
+        setCurrentRole("login");
+        setLoggedUser("");
+        setSelectedFile(null);
+        setExtractionResult(null);
+        setGeneratedToken(null);
+        setTokenError("");
+        setAuthError("");
+        setAuthSuccess("");
+      };
+
+      // UNIFIED BRAND LOGO HEADER COMPONENT
+      const BrandHeader = ({ roleName, badgeColor }) => (
+        <header className="bg-white border-b border-gray-200 px-8 py-3.5 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-tr from-blue-700 via-indigo-600 to-rose-600 rounded-2xl flex items-center justify-center shadow-md">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+            <div>
+              <span className="font-black text-gray-900 text-lg tracking-tight block leading-none">{t("title")}</span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t("tagline")}</span>
+            </div>
+            {roleName && <span className={`text-[11px] font-extrabold px-3 py-1 rounded-full ${badgeColor}`}>{roleName}</span>}
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-xl border border-gray-200">
+              <span className="text-xs font-bold text-gray-500 pl-2">🌐 Language:</span>
+              <select
+                value={selectedLanguage}
+                onChange={e => setSelectedLanguage(e.target.value)}
+                className="bg-white text-xs font-extrabold text-blue-700 px-2.5 py-1 rounded-lg border border-gray-200 focus:outline-none cursor-pointer"
+              >
+                <option value="English">🇬🇧 English</option>
+                <option value="Hindi">🇮🇳 हिंदी (Hindi)</option>
+                <option value="Bengali">🇮🇳 বাংলা (Bengali)</option>
+                <option value="Tamil">🇮🇳 தமிழ் (Tamil)</option>
+                <option value="Marathi">🇮🇳 मराठी (Marathi)</option>
+                <option value="Gujarati">🇮🇳 ગુજરાતી (Gujarati)</option>
+              </select>
+            </div>
+
+            {loggedUser && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500 font-medium hidden sm:inline">{t("logged_in_as")}: <strong className="text-gray-800 font-bold">{loggedUser}</strong></span>
+                <button onClick={handleLogout} className="bg-gray-100 hover:bg-rose-50 text-gray-600 hover:text-rose-600 font-bold px-3.5 py-1.5 rounded-xl text-xs transition-colors border border-gray-200">
+                  🚪 {t("logout")}
+                </button>
+              </div>
+            )}
+          </div>
+        </header>
+      );
+
+      return (
+        <div className="min-h-screen flex flex-col">
+
+          {/* ==================== LOGIN PAGE ==================== */}
+          {currentRole === "login" && (
+            <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-50">
+              
+              <div className="w-full max-w-5xl mb-6">
+                <BrandHeader />
+              </div>
+
+              <div className="text-center mb-6 max-w-xl">
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">{t("login_title")}</h1>
+                <p className="text-xs text-gray-500">{t("login_subtitle")}</p>
+
+                <div className="inline-flex p-1 bg-gray-200/80 rounded-2xl mt-4">
+                  <button onClick={() => { setAuthTab("signin"); setAuthError(""); setAuthSuccess(""); }} className={`px-6 py-2 rounded-xl text-xs font-extrabold transition-all ${authTab === "signin" ? "bg-white text-blue-700 shadow-sm" : "text-gray-600"}`}>
+                    🔑 Sign In (Existing User)
+                  </button>
+                  <button onClick={() => { setAuthTab("signup"); setAuthError(""); setAuthSuccess(""); }} className={`px-6 py-2 rounded-xl text-xs font-extrabold transition-all ${authTab === "signup" ? "bg-white text-blue-700 shadow-sm" : "text-gray-600"}`}>
+                    ✨ Sign Up (New User)
+                  </button>
+                </div>
+              </div>
+
+              {authError && (
+                <div className="mb-4 max-w-md w-full p-3.5 bg-rose-50 border-2 border-rose-200 text-rose-800 text-xs font-bold rounded-2xl text-center shadow-sm">
+                  ⚠️ {authError}
+                </div>
+              )}
+              {authSuccess && (
+                <div className="mb-4 max-w-md w-full p-3.5 bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl text-center shadow-sm">
+                  ✅ {authSuccess}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full">
+                
+                {/* 1. Patient Login / Register */}
+                <div className="glass-card p-6 rounded-3xl shadow-lg border border-gray-100 flex flex-col justify-between hover:shadow-2xl transition-all">
+                  <div>
+                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl font-bold mb-4">👤</div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-1">{t("patient_portal")}</h2>
+                    <p className="text-xs text-gray-500 mb-4">{t("patient_desc")}</p>
+
+                    {authTab === "signin" ? (
+                      <div className="space-y-3 text-xs mb-4">
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Registered Email</label>
+                          <input type="email" value={patientEmail} onChange={e => setPatientEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Encrypted Password</label>
+                          <input type="password" value={patientPass} onChange={e => setPatientPass(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 text-xs mb-4">
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Patient Full Name</label>
+                          <input type="text" placeholder="e.g. Rahul Sharma" value={patientRegName} onChange={e => setPatientRegName(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Email</label>
+                          <input type="email" placeholder="rahul@example.com" value={patientRegEmail} onChange={e => setPatientRegEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Password</label>
+                          <input type="password" placeholder="••••••••" value={patientRegPass} onChange={e => setPatientRegPass(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {authTab === "signin" ? (
+                    <button onClick={() => handleLogin("patient", patientEmail, patientPass)} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-colors">
+                      {t("login_as_patient")}
+                    </button>
+                  ) : (
+                    <button onClick={() => handleRegister("patient")} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-colors">
+                      {t("register_user")}
+                    </button>
+                  )}
+                </div>
+
+                {/* 2. Doctor Login / Register */}
+                <div className="glass-card p-6 rounded-3xl shadow-lg border border-gray-100 flex flex-col justify-between hover:shadow-2xl transition-all">
+                  <div>
+                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold mb-4">🩺</div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-1">{t("doctor_desk")}</h2>
+                    <p className="text-xs text-gray-500 mb-4">{t("doctor_desc")}</p>
+
+                    {authTab === "signin" ? (
+                      <div className="space-y-3 text-xs mb-4">
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Doctor Email</label>
+                          <input type="email" value={docEmail} onChange={e => setDocEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Encrypted Password</label>
+                          <input type="password" value={docPass} onChange={e => setDocPass(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 text-xs mb-4">
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Doctor Full Name</label>
+                          <input type="text" placeholder="Dr. Arvind Sharma" value={docRegName} onChange={e => setDocRegName(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Email</label>
+                          <input type="email" placeholder="doctor@mamacare.org" value={docRegEmail} onChange={e => setDocRegEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Password</label>
+                          <input type="password" placeholder="••••••••" value={docRegPass} onChange={e => setDocRegPass(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {authTab === "signin" ? (
+                    <button onClick={() => handleLogin("doctor", docEmail, docPass)} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-colors">
+                      {t("login_as_doctor")}
+                    </button>
+                  ) : (
+                    <button onClick={() => handleRegister("doctor")} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-colors">
+                      {t("register_user")}
+                    </button>
+                  )}
+                </div>
+
+                {/* 3. Receptionist Login / Register */}
+                <div className="glass-card p-6 rounded-3xl shadow-lg border border-gray-100 flex flex-col justify-between hover:shadow-2xl transition-all">
+                  <div>
+                    <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl font-bold mb-4">📋</div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-1">{t("receptionist_desk")}</h2>
+                    <p className="text-xs text-gray-500 mb-4">{t("receptionist_desc")}</p>
+
+                    {authTab === "signin" ? (
+                      <div className="space-y-3 text-xs mb-4">
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Receptionist Email</label>
+                          <input type="email" value={recEmail} onChange={e => setRecEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Encrypted Password</label>
+                          <input type="password" value={recPass} onChange={e => setRecPass(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 text-xs mb-4">
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Desk Operator Name</label>
+                          <input type="text" placeholder="Receptionist Desk #1" value={recRegName} onChange={e => setRecRegName(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Email</label>
+                          <input type="email" placeholder="reception@mamacare.org" value={recRegEmail} onChange={e => setRecRegEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-semibold mb-1">Password</label>
+                          <input type="password" placeholder="••••••••" value={recRegPass} onChange={e => setRecRegPass(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white text-gray-800 font-medium focus:outline-none" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {authTab === "signin" ? (
+                    <button onClick={() => handleLogin("receptionist", recEmail, recPass)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-colors">
+                      {t("login_as_receptionist")}
+                    </button>
+                  ) : (
+                    <button onClick={() => handleRegister("receptionist")} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-colors">
+                      {t("register_user")}
+                    </button>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          )}
+
+
+          {/* ==================== PATIENT DASHBOARD ==================== */}
+          {currentRole === "patient" && (
+            <div className="flex-1 flex flex-col">
+              <BrandHeader roleName={t("patient_portal").toUpperCase()} badgeColor="bg-emerald-100 text-emerald-800" />
+              
+              <main className="flex-1 p-8 max-w-6xl mx-auto w-full">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">{t("welcome")}, {loggedUser} 👋</h1>
+                    <p className="text-xs text-gray-500">{t("patient_subtitle")}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                  
+                  {/* REAL UPLOAD FORM */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                    <h2 className="font-bold text-gray-800 text-base mb-3 flex items-center gap-2">
+                      <span>📤</span> {t("upload_title")}
+                    </h2>
+                    
+                    <form onSubmit={handleRealUpload} className="space-y-4">
+                      <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center bg-gray-50 hover:bg-blue-50/50 transition-colors">
+                        <span className="text-4xl block mb-2">📁</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg,.txt,.docx"
+                          onChange={(e) => setSelectedFile(e.target.files[0])}
+                          className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                        />
+                        {selectedFile && (
+                          <div className="mt-3 text-xs text-emerald-700 font-bold bg-emerald-50 py-1.5 px-3 rounded-lg inline-block border border-emerald-200">
+                            Selected File: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                          </div>
+                        )}
+                        <p className="text-[11px] text-gray-400 mt-2">{t("drop_file")}</p>
+                      </div>
+
+                      {uploadError && (
+                        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+                          ⚠️ {uploadError}
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={uploading}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl text-xs shadow-md transition-colors flex items-center justify-center gap-2"
+                      >
+                        {uploading ? (
+                          <>
+                            <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            {t("btn_uploading")}
+                          </>
+                        ) : t("btn_upload")}
+                      </button>
+                    </form>
+
+                    {/* EXTRACTION & DOCUMENT CLASSIFICATION DISPLAY */}
+                    {extractionResult && (
+                      <div className="mt-6 p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-xs text-gray-800 uppercase tracking-wider">{t("extraction_result")}</span>
+                            <span className="bg-blue-600 text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm">
+                              🏷️ {extractionResult.document_type || "Blood Test"}
+                            </span>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${extractionResult.completeness_score === 100 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                            {t("completeness")}: {extractionResult.completeness_score}%
+                          </span>
+                        </div>
+
+                        {/* AI Summary & Recommendations Box */}
+                        <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                          <p className="text-xs font-bold text-blue-900 mb-1 flex items-center justify-between">
+                            <span>{t("ai_summary")} ({selectedLanguage}):</span>
+                            <span className="text-[10px] bg-blue-200/60 px-2 py-0.5 rounded text-blue-800">Gemini AI</span>
+                          </p>
+                          <p className="text-xs text-blue-900 leading-relaxed font-medium whitespace-pre-line">{extractionResult.ai_summary}</p>
+                        </div>
+
+                        {/* Extracted Fields Grid */}
+                        <div className="space-y-1">
+                          <p className="text-[11px] font-bold text-gray-500 uppercase">{t("extracted_fields")}:</p>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {Object.entries(extractionResult.extracted_fields || {}).map(([k, v]) => (
+                              <div key={k} className="p-2 bg-white rounded-lg border border-gray-100">
+                                <span className="text-[10px] text-gray-400 block font-semibold uppercase">{k.replace("_", " ")}</span>
+                                <span className="font-bold text-gray-800">{v || <span className="text-rose-500 font-normal italic">Not Found</span>}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+
+                  {/* BOOK APPOINTMENT TOKEN FORM */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                    <h2 className="font-bold text-gray-800 text-base flex items-center gap-2">
+                      <span>🎟️</span> {t("book_token")}
+                    </h2>
+
+                    {tokenError && (
+                      <div className="p-3.5 bg-rose-50 border-2 border-rose-200 text-rose-800 text-xs font-bold rounded-2xl">
+                        ⚠️ {tokenError}
+                      </div>
+                    )}
+
+                    <div className="space-y-3 text-xs">
+                      <div>
+                        <label className="block text-gray-600 font-bold mb-1">{t("doctor_select")}</label>
+                        <select value={tokenDoctor} onChange={e => setTokenDoctor(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-medium focus:outline-none">
+                          <option>Dr. Arvind Sharma (MBBS, MD - General Physician)</option>
+                          <option>Dr. Meenakshi Sundaram (Gynecologist & Obstetrics)</option>
+                          <option>Dr. Rajesh Gupta (Cardiologist)</option>
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-gray-600 font-bold mb-1">{t("app_date")}</label>
+                          <input type="date" value={tokenDate} onChange={e => setTokenDate(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-medium focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 font-bold mb-1">{t("app_time")}</label>
+                          <select value={tokenTime} onChange={e => setTokenTime(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-medium focus:outline-none">
+                            <option>10:00 AM</option>
+                            <option>10:30 AM</option>
+                            <option>11:15 AM</option>
+                            <option>02:30 PM</option>
+                            <option>04:00 PM</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-600 font-bold mb-1">{t("symptoms")}</label>
+                        <textarea rows="2" value={tokenReason} onChange={e => setTokenReason(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-medium focus:outline-none"></textarea>
+                      </div>
+
+                      <button onClick={() => handleCreateToken(loggedUser)} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs shadow-md transition-colors">
+                        {t("btn_generate_token")}
+                      </button>
+
+                      {generatedToken && (
+                        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-1">
+                          <span className="bg-emerald-600 text-white font-extrabold text-sm px-3 py-1 rounded-full inline-block mb-1">{generatedToken.token_no}</span>
+                          <p className="font-bold text-gray-800 text-xs">{t("token_success")}</p>
+                          <p className="text-gray-500 text-[11px]">{generatedToken.doctor_name} | {generatedToken.appointment_date} at {generatedToken.appointment_time}</p>
+                          <p className="text-emerald-700 text-[10px] font-bold">This token is live on Doctor's Queue Dashboard!</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+
+
+                {/* PATIENT EMAIL NOTIFICATIONS & HISTORY INBOX */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  
+                  {/* AUTOMATED ALERTS & NOTIFICATIONS INBOX */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                    <h3 className="font-bold text-gray-800 text-sm mb-4 flex items-center justify-between">
+                      <span>{t("email_notifications")}</span>
+                      <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">{notifications.length} Alerts</span>
+                    </h3>
+
+                    {notifications.length === 0 ? (
+                      <div className="p-6 bg-slate-50 rounded-2xl text-center border border-slate-100">
+                        <span className="text-2xl block mb-1">📩</span>
+                        <p className="text-xs text-gray-500 font-bold">No Alerts in Inbox!</p>
+                        <p className="text-[11px] text-gray-400">All submitted reports have 100% complete info.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                        {notifications.map((n, i) => (
+                          <div key={i} className={`p-4 rounded-2xl border space-y-1 text-xs ${n.title.includes("Missing") ? "bg-rose-50 border-rose-200" : n.title.includes("Insurance") ? "bg-amber-50 border-amber-200" : "bg-blue-50 border-blue-200"}`}>
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-gray-900">{n.title}</span>
+                              <span className="text-[10px] text-gray-400">{n.sent_at}</span>
+                            </div>
+                            <p className="text-gray-700 text-[11px] leading-relaxed">{n.message}</p>
+                            {n.missing_fields && (
+                              <div className="mt-2 text-[10px] font-bold text-rose-800 bg-rose-100/60 p-2 rounded-lg">
+                                Missing Fields: {n.missing_fields}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* EXISTING PATIENT PREVIOUS MEDICAL HISTORY */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                    <h3 className="font-bold text-gray-800 text-sm mb-4 flex items-center justify-between">
+                      <span>{t("medical_history")}</span>
+                      <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">{patientHistory.length} Records</span>
+                    </h3>
+
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                      {patientHistory.length === 0 ? (
+                        <p className="text-xs text-gray-400 italic">No past database records found. Upload a file above to save your first record.</p>
+                      ) : (
+                        patientHistory.map((h, i) => (
+                          <div key={i} className="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-1 text-xs">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-gray-800">{h.filename}</span>
+                                <span className="text-[10px] bg-blue-600 text-white font-extrabold px-2 py-0.5 rounded-full">{h.document_type || "Medical Report"}</span>
+                              </div>
+                              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Score: {h.completeness_score}%</span>
+                            </div>
+                            <p className="text-[10px] text-gray-400">Uploaded: {h.uploaded_at} | Status: {h.status}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              </main>
+            </div>
+          )}
+
+
+          {/* ==================== DOCTOR DASHBOARD ==================== */}
+          {currentRole === "doctor" && (
+            <div className="flex-1 flex flex-col">
+              <BrandHeader roleName={t("doctor_desk").toUpperCase()} badgeColor="bg-blue-100 text-blue-800" />
+              
+              <main className="flex-1 p-8 max-w-6xl mx-auto w-full">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">{t("welcome")}, {loggedUser} 🩺</h1>
+                    <p className="text-xs text-gray-500">{t("opd_queue")}</p>
+                  </div>
+                  <button onClick={fetchAppointments} className="bg-blue-50 text-blue-700 text-xs font-bold px-3.5 py-1.5 rounded-xl border border-blue-200">
+                    🔄 Refresh Live Tokens Queue
+                  </button>
+                </div>
+
+                {/* DOCTOR PATIENT HISTORY SEARCH BAR */}
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm mb-8">
+                  <h2 className="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                    <span>🔍</span> {t("patient_search")}
+                  </h2>
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      placeholder={t("search_placeholder")}
+                      value={searchQuery}
+                      onChange={e => handlePatientSearch(e.target.value)}
+                      className="flex-1 border border-gray-200 rounded-xl p-3 text-xs font-medium focus:outline-none focus:border-blue-500"
+                    />
+                    <button onClick={() => handlePatientSearch(searchQuery)} className="bg-blue-600 text-white font-bold px-5 py-3 rounded-xl text-xs hover:bg-blue-700">
+                      Search Patient DB
+                    </button>
+                  </div>
+
+                  {searchResults.length > 0 && (
+                    <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
+                      <p className="font-bold text-gray-700 uppercase text-[10px]">Found {searchResults.length} Patient Records:</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {searchResults.map(p => (
+                          <div key={p.id} className="p-3 bg-white border border-gray-200 rounded-xl flex items-center justify-between">
+                            <div>
+                              <p className="font-bold text-gray-800">{p.name}</p>
+                              <p className="text-[10px] text-gray-400">{p.email} | {p.phone || "No phone"}</p>
+                            </div>
+                            <button onClick={() => fetchPatientHistory(p.name)} className="bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-lg text-[11px] border border-blue-200">
+                              View History
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  
+                  {/* LIVE APPOINTMENTS TOKEN QUEUE */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm col-span-1">
+                    <h2 className="font-bold text-gray-800 text-sm mb-4 flex items-center justify-between">
+                      <span>{t("token_queue")}</span>
+                      <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">{appointmentsList.length} Live</span>
+                    </h2>
+
+                    <div className="space-y-3 text-xs max-h-96 overflow-y-auto pr-1">
+                      {appointmentsList.length === 0 ? (
+                        <p className="text-xs text-gray-400 italic">No live appointment tokens found. Book a token from Patient or Receptionist portal.</p>
+                      ) : (
+                        appointmentsList.map((p, i) => (
+                          <div key={i} className={`p-4 rounded-2xl border space-y-2 ${p.status === "In Consultation" ? "border-blue-300 bg-blue-50/80 shadow-sm" : p.status === "Completed" ? "border-emerald-200 bg-emerald-50/40 opacity-75" : "border-gray-100 bg-white"}`}>
+                            <div className="flex items-center justify-between">
+                              <span className="font-extrabold text-blue-600 text-base">{p.token_no}</span>
+                              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${p.status === "In Consultation" ? "bg-blue-600 text-white" : p.status === "Completed" ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-600"}`}>{p.status}</span>
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-800">{p.patient_name}</p>
+                              <p className="text-[10px] text-gray-400">{p.appointment_date} at {p.appointment_time}</p>
+                              <p className="text-[11px] text-gray-600 font-medium italic mt-1">"{p.reason}"</p>
+                            </div>
+
+                            {p.status !== "Completed" && (
+                              <div className="flex gap-2 mt-2">
+                                {p.status !== "In Consultation" && (
+                                  <button onClick={() => handleUpdateAppointmentStatus(p.id, "In Consultation")} className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-lg hover:bg-blue-700">
+                                    Start Consultation
+                                  </button>
+                                )}
+                                <button onClick={() => handleUpdateAppointmentStatus(p.id, "Completed")} className="bg-emerald-600 text-white text-[10px] font-bold px-3 py-1 rounded-lg hover:bg-emerald-700">
+                                  Mark Completed
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Prescription Writer */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm col-span-2">
+                    <h2 className="font-bold text-gray-800 text-sm mb-4">{t("write_prescription")} (Rahul Sharma)</h2>
+                    <div className="space-y-4 text-xs">
+                      <div>
+                        <label className="block text-gray-600 font-bold mb-1">{t("diagnosis")}</label>
+                        <input
+                          type="text"
+                          value={diagnosisText}
+                          onChange={e => setDiagnosisText(e.target.value)}
+                          className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-blue-500 font-medium"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-600 font-bold mb-1">{t("medicines")}</label>
+                        <textarea
+                          rows="4"
+                          value={prescriptionText}
+                          onChange={e => setPrescriptionText(e.target.value)}
+                          className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-blue-500 font-medium font-mono text-xs"
+                        ></textarea>
+                      </div>
+
+                      {prescriptionSuccess && (
+                        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-bold">
+                          ✅ {t("prescription_saved")}
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          setPrescriptionSuccess(true);
+                          setTimeout(() => setPrescriptionSuccess(false), 4000);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-xs shadow-md transition-colors"
+                      >
+                        {t("btn_save_prescription")}
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </main>
+            </div>
+          )}
+
+
+          {/* ==================== RECEPTIONIST DASHBOARD ==================== */}
+          {currentRole === "receptionist" && (
+            <div className="flex-1 flex flex-col">
+              <BrandHeader roleName={t("receptionist_desk").toUpperCase()} badgeColor="bg-indigo-100 text-indigo-800" />
+              
+              <main className="flex-1 p-8 max-w-6xl mx-auto w-full">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">{t("receptionist_desk")} 📋</h1>
+                    <p className="text-xs text-gray-500">{t("receptionist_desc")}</p>
+                  </div>
+                  <button onClick={() => { fetchAnalytics(); fetchDocs(); fetchAppointments(); }} className="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold px-3.5 py-1.5 rounded-xl hover:bg-indigo-100">
+                    🔄 Refresh Metrics & DB
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                  
+                  {/* 1. RECEPTIONIST DIRECT PATIENT REPORT PDF UPLOAD */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+                    <h2 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                      <span>📄</span> Receptionist PDF Report Upload
+                    </h2>
+
+                    <form onSubmit={handleReceptionistUpload} className="space-y-3 text-xs">
+                      <div>
+                        <label className="block text-gray-600 font-bold mb-1">Target Patient Name</label>
+                        <input
+                          type="text"
+                          value={recPatientName}
+                          onChange={e => setRecPatientName(e.target.value)}
+                          className="w-full border border-gray-200 rounded-xl p-2.5 focus:outline-none"
+                          placeholder="Patient Name..."
+                        />
+                      </div>
+
+                      <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center bg-gray-50">
+                        <input
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg,.txt,.docx"
+                          onChange={e => setRecFile(e.target.files[0])}
+                          className="w-full text-xs text-gray-500 cursor-pointer"
+                        />
+                      </div>
+
+                      {recUploadSuccess && (
+                        <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold rounded-xl text-[11px]">
+                          ✅ {recUploadSuccess}
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={recUploading || !recFile}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold py-2.5 rounded-xl shadow-md transition-colors"
+                      >
+                        {recUploading ? "Processing OCR & AI..." : "Upload & Process PDF"}
+                      </button>
+                    </form>
+                  </div>
+
+
+                  {/* 2. SEND MISSING INFO EMAIL NOTIFICATION ALERT TO PATIENT */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+                    <h2 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                      <span>📩</span> Send Missing Info Alert to Patient
+                    </h2>
+
+                    <div className="space-y-3 text-xs">
+                      <div>
+                        <label className="block text-gray-600 font-bold mb-1">Target Patient</label>
+                        <input
+                          type="text"
+                          value={notifTargetPatient}
+                          onChange={e => setNotifTargetPatient(e.target.value)}
+                          className="w-full border border-gray-200 rounded-xl p-2.5 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-600 font-bold mb-1">Missing Documents / Fields</label>
+                        <textarea
+                          rows="2"
+                          value={notifMissingFields}
+                          onChange={e => setNotifMissingFields(e.target.value)}
+                          className="w-full border border-gray-200 rounded-xl p-2.5 focus:outline-none font-medium text-xs"
+                        ></textarea>
+                      </div>
+
+                      {notifSentSuccess && (
+                        <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold rounded-xl text-[11px]">
+                          ✅ {notifSentSuccess}
+                        </div>
+                      )}
+
+                      <button
+                        onClick={handleSendMissingNotif}
+                        className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl shadow-md transition-colors"
+                      >
+                        Send Email Notification Alert 📧
+                      </button>
+                    </div>
+                  </div>
+
+
+                  {/* 3. GENERATE TOKEN WITH DUPLICATE ACTIVE TOKEN PROTECTION */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+                    <h2 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                      <span>🎟️</span> Generate Appointment Token
+                    </h2>
+
+                    {tokenError && (
+                      <div className="p-3 bg-rose-50 border-2 border-rose-200 text-rose-800 font-bold rounded-xl text-xs">
+                        ⚠️ {tokenError}
+                      </div>
+                    )}
+
+                    <div className="space-y-3 text-xs">
+                      <div>
+                        <label className="block text-gray-600 font-bold mb-1">{t("patient_name")}</label>
+                        <input type="text" value={followupPatient} onChange={e => setFollowupPatient(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 focus:outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-gray-600 font-bold mb-1">{t("doctor_select")}</label>
+                        <select value={tokenDoctor} onChange={e => setTokenDoctor(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 focus:outline-none">
+                          <option>Dr. Arvind Sharma (MBBS, MD - General Physician)</option>
+                          <option>Dr. Meenakshi Sundaram (Gynecologist & Obstetrics)</option>
+                          <option>Dr. Rajesh Gupta (Cardiologist)</option>
+                        </select>
+                      </div>
+
+                      <button onClick={() => handleCreateToken(followupPatient)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition-colors">
+                        {t("btn_generate_token")}
+                      </button>
+
+                      {generatedToken && (
+                        <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-2xl text-center space-y-1">
+                          <span className="bg-indigo-600 text-white font-extrabold text-xs px-3 py-1 rounded-full inline-block">{generatedToken.token_no}</span>
+                          <p className="font-bold text-gray-800 text-xs">{t("token_success")}</p>
+                          <p className="text-indigo-700 text-[10px] font-bold">Token is live on Doctor's OPD Desk!</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Uploaded Documents Registry & Insurance Workflow Manager */}
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                  <h2 className="font-bold text-gray-800 text-sm mb-4 flex items-center justify-between">
+                    <span>{t("doc_registry")} & Insurance Workflow</span>
+                    <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">{documents.length} Files Total</span>
+                  </h2>
+
+                  {documents.length === 0 ? (
+                    <p className="text-xs text-gray-400 italic">No uploaded documents found in database. Upload a file above to test live DB tracking.</p>
+                  ) : (
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-gray-400 border-b text-left">
+                          <th className="pb-2 font-bold">ID</th>
+                          <th className="pb-2 font-bold">{t("patient_name")}</th>
+                          <th className="pb-2 font-bold">Filename</th>
+                          <th className="pb-2 font-bold">Classification</th>
+                          <th className="pb-2 font-bold">Status</th>
+                          <th className="pb-2 font-bold">Score</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {documents.map(d => (
+                          <tr key={d.id} className="border-b last:border-0">
+                            <td className="py-2.5 font-bold text-gray-500">#{d.id}</td>
+                            <td className="py-2.5 font-bold text-gray-800">{d.patient_name}</td>
+                            <td className="py-2.5 text-gray-600">{d.filename}</td>
+                            <td className="py-2.5"><span className="bg-blue-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full">{d.document_type || "Blood Test"}</span></td>
+                            <td className="py-2.5"><span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{d.status}</span></td>
+                            <td className="py-2.5 font-bold text-blue-600">{d.completeness_score}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </main>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
